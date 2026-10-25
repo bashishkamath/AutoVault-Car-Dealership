@@ -6,8 +6,32 @@ function admin(req, res, next) { if (req.user.role !== 'admin') return res.statu
 const wrap = fn => (req, res, next) => { try { fn(req, res, next) } catch (e) { if (e.code?.startsWith('SQLITE_CONSTRAINT')) return res.status(400).json({ error: 'Invalid or duplicate data' }); next(e) } };
 app.post('/api/auth/register', wrap((req, res) => { const { name, email, password } = req.body; if (!name || !email || !/^\S+@\S+\.\S+$/.test(email) || typeof password !== 'string' || password.length < 8) return res.status(400).json({ error: 'Valid name, email and password (8+ chars) required' }); const result = db.prepare('INSERT INTO users(name,email,password,role) VALUES(?,?,?,?)').run(name, email.toLowerCase(), bcrypt.hashSync(password, 10), 'customer'); res.status(201).json({ id: result.lastInsertRowid, name, email: email.toLowerCase(), role: 'customer' }) }));
 app.post('/api/auth/login', wrap((req, res) => { const u = db.prepare('SELECT * FROM users WHERE email=?').get(String(req.body.email || '').toLowerCase()); if (!u || !bcrypt.compareSync(req.body.password || '', u.password)) return res.status(401).json({ error: 'Invalid credentials' }); res.json({ token: jwt.sign({ id: u.id, role: u.role }, secret, { expiresIn: '8h' }), user: { id: u.id, name: u.name, email: u.email, role: u.role } }) }));
-const valid = v => typeof v.make === 'string' && v.make.trim() && typeof v.model === 'string' && v.model.trim().length >= 2 && typeof v.category === 'string' && v.category.trim() && typeof v.price === 'number' && Number.isFinite(v.price) && v.price >= 0 && Number.isInteger(v.quantity) && v.quantity >= 0;
-app.get('/api/vehicles', auth, wrap((req, res) => res.json(db.prepare('SELECT * FROM vehicles ORDER BY id DESC').all())));
+const valid = (v) => {
+    const validMake =
+        typeof v.make === 'string' && v.make.trim().length > 0;
+
+    const validModel =
+        typeof v.model === 'string' && v.model.trim().length >= 2;
+
+    const validCategory =
+        typeof v.category === 'string' && v.category.trim().length > 0;
+
+    const validPrice =
+        typeof v.price === 'number' &&
+        Number.isFinite(v.price) &&
+        v.price >= 0;
+
+    const validQuantity =
+        Number.isInteger(v.quantity) && v.quantity >= 0;
+
+    return Boolean(
+        validMake &&
+        validModel &&
+        validCategory &&
+        validPrice &&
+        validQuantity
+    );
+}; app.get('/api/vehicles', auth, wrap((req, res) => res.json(db.prepare('SELECT * FROM vehicles ORDER BY id DESC').all())));
 app.get('/api/vehicles/search', auth, wrap((req, res) => { let { make = '', model = '', category = '', minPrice = '', maxPrice = '' } = req.query; const rows = db.prepare('SELECT * FROM vehicles WHERE LOWER(make) LIKE ? AND LOWER(model) LIKE ? AND LOWER(category) LIKE ? AND price>=? AND price<=? ORDER BY id DESC').all(...[make, model, category].map(x => `%${String(x).toLowerCase()}%`), minPrice === '' ? 0 : Number(minPrice), maxPrice === '' ? Number.MAX_SAFE_INTEGER : Number(maxPrice)); res.json(rows) }));
 app.post('/api/vehicles', auth, admin, wrap((req, res) => { if (!valid(req.body)) return res.status(400).json({ error: 'Invalid vehicle' }); const v = req.body; const r = db.prepare('INSERT INTO vehicles(make,model,category,price,quantity) VALUES(?,?,?,?,?)').run(v.make, v.model, v.category, v.price, v.quantity); res.status(201).json(db.prepare('SELECT * FROM vehicles WHERE id=?').get(r.lastInsertRowid)) }));
 app.put('/api/vehicles/:id', auth, admin, wrap((req, res) => { const old = db.prepare('SELECT * FROM vehicles WHERE id=?').get(req.params.id); if (!old) return res.status(404).json({ error: 'Not found' }); const v = { ...old, ...req.body }; if (!valid(v)) return res.status(400).json({ error: 'Invalid vehicle' }); db.prepare('UPDATE vehicles SET make=?,model=?,category=?,price=?,quantity=? WHERE id=?').run(v.make, v.model, v.category, v.price, v.quantity, req.params.id); res.json(db.prepare('SELECT * FROM vehicles WHERE id=?').get(req.params.id)) }));
