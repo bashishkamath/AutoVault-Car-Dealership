@@ -1,8 +1,25 @@
-# Raw AI prompt log
+# AI Prompts and Conversation Logs
 
-This file must contain your actual, unedited AI conversation transcripts or public conversation links before submission. Do not present a generated summary as a raw transcript.
+## AI Tool Used
+ChatGPT (OpenAI)
 
-Initial prompt from the project-building conversation:
-> first say what and all i have to do and what and all required and give project zip file
+## Project
+AutoVault — Car Dealership Inventory System
 
-Attach/export the full original conversation and subsequent AI-assisted development prompts here before submitting.
+## Original AI Conversation
+
+The following link contains the shared ChatGPT conversation used during project development, debugging, testing, and documentation.
+
+https://chatgpt.com/share/6add9ae6-4690-83ec-bb68-64eb06394a1b
+
+## AI Assistance
+ChatGPT was used to assist with:
+- Initial backend and frontend implementation
+- Debugging npm and application issues
+- JWT authentication and admin functionality
+- Writing and running API tests
+- Test-Driven Development (RED, GREEN, REFACTOR)
+- Git and GitHub setup
+- README documentation
+
+The original conversation link is provided above for transparency.

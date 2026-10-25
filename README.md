@@ -69,3 +69,33 @@ Set a strong JWT secret; configure CORS allowlist, HTTPS, rate limiting, stronge
 
 ### Backend Test Results
 ![Test Results](screenshots/test-results.png)
+
+## Test Results
+
+Backend testing was performed using Jest and Supertest.
+
+- Test Suites: 1 passed
+- Tests: 7 passed
+- Failed Tests: 0
+
+## Test-Driven Development (TDD)
+
+The project follows the Red-Green-Refactor approach.
+
+### RED
+Added a test to reject vehicle models containing fewer than
+two characters. The test initially failed.
+
+### GREEN
+Updated backend vehicle validation to reject invalid
+model names. All 7 tests passed.
+
+### REFACTOR
+Improved the readability of the vehicle validation function
+without changing its behavior. All 7 tests continued to pass.
+
+### Git Commit History
+
+- RED: 7e31866
+- GREEN: 3f947b9
+- REFACTOR: f616421
